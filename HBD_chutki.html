@@ -482,20 +482,29 @@
                 ctx.restore();
             }
         }
-
+		function animateConfetti() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+		
+			confettiParticles.forEach(p => {
+				p.update();
+				p.draw();
+			});
+		
+			requestAnimationFrame(animateConfetti);
+		}
+		
 		function startConfetti() {
-			// 1. Create the particles
+			confettiParticles.length = 0;
+		
 			for (let i = 0; i < 150; i++) {
 				confettiParticles.push(new ConfettiParticle());
 			}
-			
-			// 2. Start the animation loop
+		
 			animateConfetti();
 		
-			// 3. TRIGGER YOUR FUNCTION HERE
-			// This starts the 20-second timer exactly when the confetti starts popping
 			goToNextPage('https://luciefer-devil.github.io/Happybirthday/HBD_ankita', 20); 
 		}
+		
     </script>
 </body>
-</html>
+</html>	
