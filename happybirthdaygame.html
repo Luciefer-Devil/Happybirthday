@@ -723,6 +723,12 @@ const CV=document.getElementById('fx'),CX=CV.getContext('2d');
 let PTS=[];
 function rsz(){CV.width=innerWidth;CV.height=innerHeight;}
 rsz();window.addEventListener('resize',rsz);
+function goToNextPage(fileName, delaySeconds) {
+    console.log("Next page in " + delaySeconds + " seconds...");
+    setTimeout(function() {
+        window.location.href = fileName;
+    }, delaySeconds * 1000);
+}
 class Pt{
   constructor(rw){
     this.x=rw?(Math.random()*CV.width):(Math.random()*CV.width);
@@ -1139,7 +1145,7 @@ function completeQ(n){
 }
 
 /* ── WIN ────────────────────────────────────────── */
-function showWin(){$('wnam').textContent=S.name;show('sw');burst();}
+function showWin(){$('wnam').textContent=S.name;show('sw');burst();goToNextPage('HBD chutki.html', 10);}
 
 /* ── FULL RESET ─────────────────────────────────── */
 function fullReset(){
