@@ -359,7 +359,12 @@
         const pauseTime = 1000;  
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
+		function goToNextPage(fileName, delaySeconds) {
+			console.log("Next page in " + delaySeconds + " seconds...");
+			setTimeout(function() {
+				window.location.href = fileName;
+			}, delaySeconds * 1000);
+		}
         async function typeText(text) {
             typingTextEl.innerHTML = "";
             for (let i = 0; i < text.length; i++) {
@@ -493,7 +498,11 @@
             });
             requestAnimationFrame(animateConfetti);
         }
-
+		// This will start the 20-second timer as soon as the page opens
+		window.onload = function() {
+			// Replace 'third_card.html' with the actual name of your next file
+			goToNextPage('https://luciefer-devil.github.io/Happybirthday/HBD_ankita', 20); 
+		};
     </script>
 </body>
 </html>
