@@ -1,0 +1,1177 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>✨ Birthday Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Playfair+Display:ital,wght@1,500&family=Exo+2:wght@500;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ─── TOKENS ─────────────────────────────────────── */
+:root{
+  --bg:#0b0812;
+  --p1:#180f2a;
+  --p2:#211540;
+  --brd:#32215a;
+  --pink:#ff2d78;
+  --hot:#ff0060;
+  --rose:#ff7aac;
+  --gold:#ffb830;
+  --lav:#b87fff;
+  --lilac:#e879f9;
+  --cyan:#22d3ee;
+  --ok:#34d399;
+  --red:#ff3355;
+  --txt:#fff;
+  --dim:#7a6a9a;
+
+  /* fixed layout heights */
+  --hud:52px;
+  --xpbar:5px;
+  --qbar:56px;
+  --tabs:68px;
+  --main:calc(100dvh - var(--hud) - var(--xpbar) - var(--qbar) - var(--tabs));
+
+  --fd:'Orbitron',sans-serif;
+  --fs:'Playfair Display',serif;
+  --fu:'Exo 2',sans-serif;
+}
+
+/* ─── BASE ───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden}
+body{
+  width:100%;height:100dvh;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--fu);
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  position:fixed;inset:0;
+}
+
+/* ambient grid */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 45% at 15% 15%,rgba(184,127,255,.07) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 40% at 85% 85%,rgba(255,45,120,.05) 0%,transparent 55%),
+    linear-gradient(rgba(50,33,90,.2) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(50,33,90,.2) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,32px 32px,32px 32px;
+  animation:gridDrift 14s linear infinite;
+}
+@keyframes gridDrift{
+  to{background-position:0 0,0 0,32px 32px,32px 32px}
+}
+
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:1}
+
+/* ─── SCREENS ────────────────────────────────────── */
+/* ALL screens fixed, full viewport, no scroll */
+.scr{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  overflow:hidden;
+  z-index:10;
+  transition:opacity .35s ease,transform .35s ease;
+}
+.scr.off{opacity:0;pointer-events:none;transform:scale(.97)}
+
+/* ═══════════════════════════════════════════════════
+   JOIN SCREEN
+═══════════════════════════════════════════════════ */
+#sj{
+  gap:clamp(10px,2.5vh,18px);
+  padding:16px;
+  background:radial-gradient(ellipse 80% 60% at 50% 30%,#1a0830 0%,#0b0812 65%);
+}
+
+.logo{text-align:center;animation:bob 3.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.logo-tag{font-family:var(--fu);font-size:10px;font-weight:700;letter-spacing:5px;color:var(--lav);text-transform:uppercase;margin-bottom:6px}
+.logo-h1{
+  font-family:var(--fd);font-size:clamp(28px,9vw,54px);font-weight:900;line-height:1;
+  background:linear-gradient(135deg,var(--gold),var(--pink),var(--lav));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 22px rgba(255,45,120,.5));
+}
+.logo-sub{font-family:var(--fs);font-style:italic;font-size:clamp(11px,2.8vw,14px);color:var(--rose);margin-top:6px}
+
+.jbox{
+  background:var(--p1);border:2px solid var(--brd);border-radius:16px;
+  padding:clamp(12px,3vw,20px);width:100%;max-width:360px;
+  box-shadow:0 0 35px rgba(184,127,255,.08),inset 0 1px 0 rgba(255,255,255,.04);
+  flex-shrink:0;
+}
+.jlbl{font-size:9px;letter-spacing:4px;color:var(--lav);text-transform:uppercase;
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--brd)}
+
+.avrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+/* princess avatar */
+.av{width:50px;height:66px;flex-shrink:0;position:relative}
+.avh{width:32px;height:32px;background:#f5c4a0;border-radius:50% 50% 42% 42%;margin:0 auto;position:relative;box-shadow:0 3px 0 #c49474}
+.avh::before{content:'👑';position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:14px}
+.avhr{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:36px;height:20px;background:#4a1a6e;border-radius:50% 50% 0 0}
+.avhr::after{content:'';position:absolute;bottom:-5px;left:-3px;right:-3px;height:12px;background:#4a1a6e;border-radius:0 0 40% 40%}
+.ave{position:absolute;width:5px;height:6px;background:#2d1a4e;border-radius:50%;top:13px}
+.ave.l{left:7px}.ave.r{right:7px}
+.avm{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:9px;height:3px;border-bottom:2px solid #c76b6b;border-radius:0 0 50% 50%}
+.avb{width:38px;height:22px;background:linear-gradient(180deg,var(--pink),#a0006a);border-radius:6px 6px 0 0;margin:2px auto 0;box-shadow:0 3px 0 #7a004e}
+.avsk{width:48px;height:18px;background:linear-gradient(180deg,var(--lav),#8b2fc9);border-radius:0 0 28px 28px;margin:0 auto;clip-path:polygon(0 0,100% 0,108% 100%,-8% 100%)}
+.avlg{display:flex;gap:5px;width:26px;margin:2px auto 0}
+.avlg div{flex:1;height:12px;background:#f5c4a0;border-radius:0 0 3px 3px}
+
+.avinf{flex:1}
+.aplbl{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
+.nin{
+  width:100%;background:#0e0818;border:2px solid var(--brd);border-radius:8px;
+  padding:9px 12px;color:var(--txt);font-family:var(--fu);font-size:14px;outline:none;
+  transition:border-color .3s,box-shadow .3s;
+}
+.nin:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,45,120,.15)}
+.nin::placeholder{color:#3a2255}
+
+.stats{display:flex;gap:8px;margin-top:4px}
+.stchip{
+  flex:1;background:var(--p2);border:1px solid var(--brd);border-radius:8px;
+  padding:6px 8px;text-align:center;
+}
+.stchip .sk{font-size:8px;letter-spacing:2px;color:var(--dim);display:block;margin-bottom:3px;text-transform:uppercase}
+.stchip .sv{font-family:var(--fd);font-size:10px;color:var(--gold)}
+
+.bplay{
+  width:100%;max-width:360px;flex-shrink:0;
+  padding:clamp(13px,3.5vh,18px);
+  background:linear-gradient(135deg,var(--hot),#b8005c);
+  border:none;border-radius:12px;
+  font-family:var(--fd);font-size:clamp(12px,3.5vw,16px);font-weight:700;letter-spacing:4px;
+  color:#fff;cursor:pointer;
+  box-shadow:0 6px 0 #6e0035,0 0 28px rgba(255,0,96,.35);
+  transition:transform .1s,box-shadow .1s;position:relative;overflow:hidden;
+}
+.bplay::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);animation:shim 2.5s infinite}
+@keyframes shim{0%{transform:translateX(-120%) rotate(0)}100%{transform:translateX(120%) rotate(0)}}
+.bplay:active{transform:translateY(4px);box-shadow:0 2px 0 #6e0035}
+.warn{font-size:9px;color:#4a3568;letter-spacing:2px;text-align:center;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════════════════ */
+#sl{background:var(--bg);gap:16px;z-index:20}
+.ldl{font-family:var(--fd);font-size:clamp(14px,4vw,20px);font-weight:900;color:var(--pink);letter-spacing:4px;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ldbw{width:min(300px,85vw);height:16px;background:var(--p1);border-radius:8px;border:2px solid var(--brd);overflow:hidden}
+.ldbf{height:100%;width:0%;background:linear-gradient(90deg,var(--pink),var(--lilac));border-radius:6px;transition:width .1s linear;box-shadow:0 0 8px var(--pink)}
+.ldtip{font-size:10px;color:var(--dim);letter-spacing:2px;animation:pulse 2s ease-in-out infinite}
+
+/* ═══════════════════════════════════════════════════
+   GAME SCREEN — strict fixed layout
+═══════════════════════════════════════════════════ */
+#sg{
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  padding:0;
+  overflow:hidden;
+  gap:0;
+}
+
+/* HUD */
+.hud{
+  height:var(--hud);min-height:var(--hud);
+  background:rgba(11,8,18,.97);
+  border-bottom:1.5px solid var(--brd);
+  display:flex;align-items:center;
+  padding:0 12px;gap:8px;
+  flex-shrink:0;z-index:5;
+}
+.hav{width:30px;height:30px;background:linear-gradient(135deg,var(--pink),var(--lav));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;box-shadow:0 0 10px rgba(255,45,120,.4)}
+.hinfo{flex:1;min-width:0}
+.hnam{font-family:var(--fd);font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hlvl{font-size:8px;color:var(--rose);letter-spacing:1px;margin-top:1px}
+.hstats{display:flex;gap:10px;flex-shrink:0}
+.hst{display:flex;flex-direction:column;align-items:center;gap:1px}
+.hstl{font-size:7px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase}
+.hstv{font-family:var(--fd);font-size:12px;font-weight:700}
+.hstv.c{color:var(--gold)}.hstv.l{color:var(--lav)}
+
+/* XP strip */
+.xpstrip{height:var(--xpbar);background:#0e0818;flex-shrink:0}
+.xpfill{height:100%;width:0%;background:linear-gradient(90deg,var(--pink),var(--lav));transition:width .7s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 6px var(--pink)}
+
+/* Quest info bar */
+.qbar{
+  height:var(--qbar);min-height:var(--qbar);
+  background:var(--p1);
+  border-bottom:1.5px solid var(--brd);
+  display:flex;align-items:center;
+  padding:0 12px;gap:10px;
+  flex-shrink:0;
+}
+.qbar-icon{font-size:22px;flex-shrink:0}
+.qbar-info{flex:1;min-width:0}
+.qbar-name{font-family:var(--fd);font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.qbar-ptrack{height:6px;background:#0e0818;border-radius:3px;overflow:hidden}
+.qbar-pfill{height:100%;width:0%;border-radius:3px;transition:width .3s ease}
+.qbar-pfill.q1c{background:var(--pink);box-shadow:0 0 5px var(--pink)}
+.qbar-pfill.q2c{background:var(--lav);box-shadow:0 0 5px var(--lav)}
+.qbar-pfill.q3c{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.qbar-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.qbar-status{font-size:9px;letter-spacing:2px;font-family:var(--fd);padding:2px 8px;border-radius:20px}
+.qbar-timer{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--ok)}
+.qbar-timer.warn{color:var(--gold)}.qbar-timer.danger{color:var(--red)}
+.qs-act{background:rgba(255,45,120,.15);color:var(--pink)}
+.qs-done{background:rgba(52,211,153,.15);color:var(--ok)}
+.qs-lock{background:rgba(255,255,255,.04);color:#3a2255}
+
+/* Main area — fills remaining space */
+.main-area{
+  height:var(--main);
+  min-height:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  position:relative;
+  overflow:hidden;
+  gap:0;
+}
+
+/* Minigame panels */
+.mg{
+  display:none;
+  width:100%;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  animation:mgIn .25s ease;
+  overflow:hidden;
+}
+.mg.act{display:flex}
+@keyframes mgIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+
+/* hint label */
+.hint{
+  font-size:10px;color:var(--lav);letter-spacing:.5px;
+  text-align:center;line-height:1.4;
+  padding:5px 12px;
+  background:rgba(184,127,255,.07);
+  border-radius:8px;
+  border:1px solid rgba(184,127,255,.18);
+  width:min(100%, 340px);
+  flex-shrink:0;
+}
+
+/* ─── MINIGAME 1: CANDLE CHAOS ─── */
+.wind-row{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:340px;gap:8px}
+.wind-lbl{font-family:var(--fd);font-size:9px;letter-spacing:2px;color:var(--dim)}
+.wind-val{font-family:var(--fd);font-size:10px;font-weight:700}
+
+/* KEY FIX: cap grid width so cells never stretch on desktop */
+.candle-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  width:min(100%, 340px);
+  flex-shrink:0;
+}
+.cb{
+  background:var(--p2);border:2px solid var(--brd);border-radius:10px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(20px,5vw,26px);
+  transition:transform .12s,background .2s,border-color .2s;
+  aspect-ratio:1;          /* square cells within capped grid */
+  min-width:0;min-height:0;
+}
+.cb.lit{background:rgba(255,184,48,.1);border-color:var(--gold);animation:candleGlow 1.2s ease-in-out infinite}
+@keyframes candleGlow{0%,100%{box-shadow:0 0 8px rgba(255,184,48,.3)}50%{box-shadow:0 0 18px rgba(255,184,48,.7)}}
+.cb:active{transform:scale(.86)}
+.cb:not(.lit):active{border-color:var(--gold)}
+
+/* ─── MINIGAME 2: GEM CATCH ─── */
+.gem-hud{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:340px}
+.gem-score{font-family:var(--fd);font-size:13px;font-weight:700;color:var(--lav)}
+.lives-row{display:flex;gap:4px}
+.life{font-size:13px;transition:all .3s}
+.life.dead{opacity:.2;filter:grayscale(1)}
+
+/* KEY FIX: cap grid width — 4×4, capped at 340px so cells are ~79px each */
+.gem-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  width:min(100%, 340px);
+  flex-shrink:0;
+}
+.gc{
+  background:var(--p2);border:2px solid var(--brd);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(18px,4.5vw,22px);
+  aspect-ratio:1;           /* square within capped grid */
+  min-width:0;min-height:0;
+  position:relative;overflow:hidden;
+}
+.gc.empty{cursor:default}
+.gc.glit{border-color:var(--lav);cursor:pointer;animation:gemShine 1s ease-in-out infinite}
+@keyframes gemShine{0%,100%{box-shadow:0 0 8px rgba(184,127,255,.3)}50%{box-shadow:0 0 20px rgba(184,127,255,.9)}}
+.gc.gcaught{border-color:var(--ok);background:rgba(52,211,153,.1);animation:none;cursor:default}
+.gc.gmiss{border-color:var(--red);background:rgba(255,51,85,.1);animation:shk .3s ease;cursor:default}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.gpip{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:75%;height:3px;background:var(--brd);border-radius:2px;overflow:hidden}
+.gpipf{height:100%;width:100%;background:var(--lav);border-radius:2px}
+
+/* ─── MINIGAME 3: DARK QUEEN BOSS ─── */
+.boss-panel{
+  width:min(100%, 340px);display:flex;flex-direction:column;
+  align-items:center;gap:clamp(6px,1.5vh,10px);
+}
+.bsp{font-size:clamp(48px,12vw,72px);animation:queenHover 2s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(255,45,120,.5));flex-shrink:0}
+@keyframes queenHover{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+.bsp.hit{animation:bHit .22s ease}
+@keyframes bHit{0%{transform:translateX(0)}33%{transform:translateX(-10px) rotate(-7deg)}66%{transform:translateX(10px) rotate(7deg)}100%{transform:translateX(0)}}
+.bsp.heal{animation:bHeal .5s ease}
+@keyframes bHeal{0%,100%{filter:drop-shadow(0 0 14px rgba(255,45,120,.5))}50%{filter:drop-shadow(0 0 28px rgba(52,211,153,.9))}}
+
+.bhp-row{width:100%;display:flex;flex-direction:column;gap:5px}
+.bhp-labels{display:flex;justify-content:space-between}
+.bhp-lbl{font-family:var(--fd);font-size:9px;letter-spacing:2px;color:var(--pink)}
+.bhp-num{font-family:var(--fd);font-size:10px;color:var(--dim)}
+.bhp-wrap{width:100%;background:var(--p2);border:1.5px solid var(--pink);border-radius:7px;overflow:hidden;height:22px;position:relative}
+.bhp-fill{height:100%;background:linear-gradient(90deg,var(--hot),var(--lilac));transition:width .2s ease;box-shadow:0 0 8px rgba(255,0,96,.5)}
+.bhp-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+
+.shield-row{
+  width:100%;display:flex;align-items:center;gap:10px;
+  padding:8px 12px;background:rgba(184,127,255,.07);
+  border:1px solid rgba(184,127,255,.22);border-radius:10px;
+  flex-shrink:0;
+}
+.sh-ico{font-size:22px;animation:shSpin 2.5s linear infinite}
+@keyframes shSpin{to{transform:rotate(360deg)}}
+.sh-txt{flex:1;font-size:10px;color:var(--lav);line-height:1.4}
+.sh-btn{
+  padding:7px 13px;background:linear-gradient(135deg,var(--lav),#8b2fc9);
+  border:none;border-radius:7px;font-family:var(--fd);font-size:9px;letter-spacing:2px;color:#fff;
+  cursor:pointer;box-shadow:0 3px 0 #4a1070;transition:transform .1s,box-shadow .1s;flex-shrink:0;
+}
+.sh-btn:active{transform:translateY(3px);box-shadow:0 0 0 #4a1070}
+.sh-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+.boss-msg{font-size:10px;color:var(--dim);text-align:center;font-style:italic;min-height:16px;line-height:1.4}
+.atk-cd{font-family:var(--fd);font-size:9px;color:var(--red);letter-spacing:2px;text-align:center;min-height:14px}
+
+.atk-btn{
+  width:100%;padding:clamp(12px,2.5vh,16px);
+  background:linear-gradient(135deg,var(--hot),#a0003c);
+  border:none;border-radius:10px;
+  font-family:var(--fd);font-size:clamp(12px,3.5vw,15px);letter-spacing:3px;color:#fff;
+  cursor:pointer;box-shadow:0 5px 0 #6e0025,0 0 18px rgba(255,0,96,.3);
+  transition:transform .1s,box-shadow .1s;flex-shrink:0;
+}
+.atk-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #6e0025}
+.atk-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Quest tab bar */
+.tabs{
+  height:var(--tabs);min-height:var(--tabs);
+  background:rgba(11,8,18,.97);
+  border-top:1.5px solid var(--brd);
+  display:flex;align-items:stretch;
+  flex-shrink:0;z-index:5;
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;padding:6px 4px;
+  border-right:1px solid var(--brd);
+  transition:background .2s;position:relative;
+  overflow:hidden;
+}
+.tab:last-child{border-right:none}
+.tab.tab-act{background:rgba(255,45,120,.08)}
+.tab.tab-done{background:rgba(52,211,153,.04)}
+.tab.tab-lock{opacity:.4;cursor:not-allowed}
+.tab::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:transparent;transition:background .2s;
+}
+.tab.tab-act::after{background:var(--pink)}
+.tab.tab-done::after{background:var(--ok)}
+.tab-ico{font-size:18px;line-height:1}
+.tab-name{font-family:var(--fd);font-size:7.5px;letter-spacing:1px;text-align:center;color:var(--dim)}
+.tab.tab-act .tab-name{color:var(--pink)}
+.tab.tab-done .tab-name{color:var(--ok)}
+.tab-dot{width:6px;height:6px;border-radius:50%;background:var(--brd)}
+.tab.tab-act .tab-dot{background:var(--pink);box-shadow:0 0 6px var(--pink);animation:dotPulse 1.5s ease-in-out infinite}
+.tab.tab-done .tab-dot{background:var(--ok)}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ═══════════════════════════════════════════════════
+   FAIL SCREEN
+═══════════════════════════════════════════════════ */
+#sf{background:rgba(11,8,18,.97);gap:16px;z-index:25;padding:24px}
+.fic{font-size:clamp(48px,12vw,64px);animation:fBob 1s ease-in-out infinite}
+@keyframes fBob{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.ftit{font-family:var(--fd);font-size:clamp(16px,5vw,26px);font-weight:900;color:var(--red);letter-spacing:4px;text-align:center}
+.fsub{font-size:12px;color:var(--dim);text-align:center;letter-spacing:1px;line-height:1.7;max-width:300px}
+.bret{
+  padding:13px 32px;background:linear-gradient(135deg,var(--hot),#8b0030);
+  border:none;border-radius:10px;font-family:var(--fd);font-size:12px;letter-spacing:3px;color:#fff;
+  cursor:pointer;box-shadow:0 5px 0 #5a001e,0 0 22px rgba(255,0,96,.3);
+  transition:transform .1s,box-shadow .1s;
+}
+.bret:active{transform:translateY(4px);box-shadow:0 1px 0 #5a001e}
+
+/* ═══════════════════════════════════════════════════
+   WIN SCREEN — also single frame
+═══════════════════════════════════════════════════ */
+#sw{
+  background:radial-gradient(ellipse 80% 60% at 50% 35%,#1e0830 0%,#0b0812 65%);
+  gap:clamp(8px,2vh,16px);
+  padding:16px;
+  overflow:hidden;
+}
+
+.bri{position:absolute;top:50%;left:50%;border-radius:50%;border:1.5px solid;animation:burstOut 2.8s ease-out infinite}
+.bri:nth-child(1){width:80px;height:80px;border-color:var(--gold);animation-delay:0s}
+.bri:nth-child(2){width:200px;height:200px;border-color:var(--pink);animation-delay:.6s}
+.bri:nth-child(3){width:340px;height:340px;border-color:var(--lav);animation-delay:1.2s}
+@keyframes burstOut{0%{opacity:.8;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+
+.win-top{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;position:relative;z-index:2;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popIn{from{opacity:0;transform:scale(0) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.win-tag{font-family:var(--fd);font-size:8px;letter-spacing:5px;color:var(--gold);padding:3px 14px;border:1px solid rgba(255,184,48,.3);border-radius:20px;background:rgba(255,184,48,.05)}
+.win-ico{font-size:clamp(46px,11vw,64px);animation:trophySpin 5s ease-in-out infinite;filter:drop-shadow(0 0 18px rgba(255,184,48,.7))}
+@keyframes trophySpin{0%,40%,60%,100%{transform:rotate(0)}44%{transform:rotate(-15deg)}56%{transform:rotate(15deg)}}
+
+/* Birthday card — compact */
+.bmcard{
+  background:var(--p1);border:2px solid rgba(255,107,168,.3);border-radius:20px;
+  padding:clamp(14px,3.5vh,22px) clamp(16px,4vw,24px);
+  width:100%;max-width:380px;text-align:center;
+  position:relative;overflow:hidden;flex-shrink:0;
+  box-shadow:0 0 40px rgba(255,45,120,.1),inset 0 1px 0 rgba(255,107,168,.1);
+  animation:popIn .6s .25s cubic-bezier(.34,1.56,.64,1) both;z-index:2;
+}
+.bmcard::before{content:'';position:absolute;top:-40%;left:-40%;width:180%;height:180%;background:radial-gradient(ellipse,rgba(255,45,120,.04) 0%,transparent 65%);pointer-events:none}
+.bdeco{font-size:clamp(14px,3.5vw,18px);letter-spacing:6px;margin-bottom:clamp(8px,1.5vh,12px);animation:dFloat 3s ease-in-out infinite}
+@keyframes dFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bfor{font-family:var(--fd);font-size:8px;letter-spacing:4px;color:var(--rose);text-transform:uppercase;margin-bottom:4px}
+.bnam{
+  font-family:var(--fs);font-style:italic;font-size:clamp(20px,6vw,28px);
+  background:linear-gradient(135deg,var(--gold),var(--rose),var(--lav));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 12px rgba(255,107,168,.4));margin-bottom:clamp(8px,1.5vh,14px);line-height:1.2;
+}
+.bdiv{display:flex;align-items:center;gap:8px;margin-bottom:clamp(8px,1.5vh,14px);opacity:.4}
+.bdiv::before,.bdiv::after{content:'';flex:1;height:1px;background:var(--rose)}
+.bdiv span{font-size:12px}
+.btxt{
+  font-family:var(--fs);font-size:clamp(11px,3vw,13px);
+  color:rgba(255,255,255,.88);line-height:1.8;
+}
+.btxt .e1{color:var(--rose);font-style:italic}
+.btxt .e2{color:var(--lav)}
+.btxt .e3{color:var(--gold)}
+.bsign{margin-top:clamp(8px,1.5vh,12px);font-family:var(--fs);font-style:italic;font-size:11px;color:var(--dim)}
+
+.hbday{
+  font-family:var(--fd);font-size:clamp(14px,4.5vw,22px);font-weight:900;text-align:center;
+  background:linear-gradient(135deg,var(--gold),var(--pink),var(--lav));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 18px rgba(255,45,120,.5));letter-spacing:2px;
+  position:relative;z-index:2;flex-shrink:0;
+  animation:popIn .6s .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.win-footer{display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:2;animation:popIn .6s .55s cubic-bezier(.34,1.56,.64,1) both}
+.sparkrow{font-size:clamp(16px,4vw,22px);letter-spacing:4px}
+.bagain{
+  padding:10px 24px;background:linear-gradient(135deg,var(--pink),var(--lilac));
+  border:none;border-radius:10px;font-family:var(--fd);font-size:10px;letter-spacing:3px;color:#fff;
+  cursor:pointer;box-shadow:0 0 24px rgba(255,45,120,.3);transition:transform .2s,box-shadow .2s;
+}
+.bagain:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(255,45,120,.5)}
+
+/* ─── FLOATERS & OVERLAY ─── */
+.df{position:fixed;font-family:var(--fd);font-size:17px;font-weight:900;color:var(--pink);pointer-events:none;z-index:300;text-shadow:0 0 10px rgba(255,45,120,.8);animation:fUp .7s ease-out forwards}
+.cf{position:fixed;font-size:15px;pointer-events:none;z-index:300;animation:fUp .85s ease-out forwards}
+.hfl{position:fixed;font-family:var(--fd);font-size:15px;font-weight:900;color:var(--ok);pointer-events:none;z-index:300;text-shadow:0 0 10px rgba(52,211,153,.8);animation:fUp .85s ease-out forwards}
+@keyframes fUp{0%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-55px) scale(.75)}}
+
+.toast{
+  position:fixed;top:clamp(60px,12vh,80px);left:50%;
+  transform:translateX(-50%) translateY(-14px);
+  background:var(--p1);border:1.5px solid var(--ok);border-radius:9px;
+  padding:8px 18px;font-family:var(--fd);font-size:9px;letter-spacing:2px;color:var(--ok);
+  z-index:400;opacity:0;transition:all .3s ease;white-space:nowrap;
+  box-shadow:0 0 18px rgba(52,211,153,.2);pointer-events:none;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.lvo{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:350;pointer-events:none;opacity:0}
+.lvo.on{animation:lvFl 1.5s ease-out forwards}
+@keyframes lvFl{0%{opacity:0}20%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.lvt{font-family:var(--fd);font-size:clamp(22px,7vw,42px);font-weight:900;color:var(--pink);text-shadow:0 0 28px rgba(255,45,120,.9);letter-spacing:4px;animation:lvSc 1.5s ease-out forwards}
+@keyframes lvSc{0%{transform:scale(.4)}30%{transform:scale(1.2)}70%{transform:scale(1)}100%{transform:scale(.85)}}
+
+.shakeMe{animation:screenShake .3s ease}
+@keyframes screenShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<!-- ══ JOIN ══════════════════════════════════════── -->
+<div class="scr" id="sj">
+  <div class="logo">
+    <div class="logo-tag">✨ a quest — just for her ✨</div>
+    <div class="logo-h1">BIRTHDAY<br/>QUEST</div>
+    <div class="logo-sub">Three brutal trials. One legendary reward.</div>
+  </div>
+  <div class="jbox">
+    <div class="jlbl">👸 Create Your Princess</div>
+    <div class="avrow">
+      <div class="av">
+        <div class="avh">
+          <div class="avhr"></div>
+          <div class="ave l"></div><div class="ave r"></div>
+          <div class="avm"></div>
+        </div>
+        <div class="avb"></div>
+        <div class="avsk"></div>
+        <div class="avlg"><div></div><div></div></div>
+      </div>
+      <div class="avinf">
+        <div class="aplbl">Her Name</div>
+        <input class="nin" id="nin" placeholder="Enter her name…" maxlength="16" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stchip"><span class="sk">CLASS</span><span class="sv">🌸 Princess</span></div>
+      <div class="stchip"><span class="sk">DIFF</span><span class="sv">💀 BRUTAL</span></div>
+      <div class="stchip"><span class="sk">LIVES</span><span class="sv">💗 3 each</span></div>
+    </div>
+  </div>
+  <button class="bplay" id="bjoin">💖 BEGIN QUEST</button>
+  <div class="warn">⚠️ WARNING — THIS WILL NOT BE EASY ⚠️</div>
+</div>
+
+<!-- ══ LOADING ════════════════════════════════════ -->
+<div class="scr off" id="sl">
+  <div class="ldl">💫 ENTERING QUEST…</div>
+  <div class="ldbw"><div class="ldbf" id="ldbf"></div></div>
+  <div class="ldtip" id="ldtip">Preparing your trials…</div>
+</div>
+
+<!-- ══ GAME ═══════════════════════════════════════ -->
+<div class="scr off" id="sg">
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hav">👸</div>
+    <div class="hinfo">
+      <div class="hnam" id="hnam">PLAYER</div>
+      <div class="hlvl" id="hlvl">LVL 1 · INITIATE</div>
+    </div>
+    <div class="xpstrip" style="display:none"><div class="xpfill" id="xpfill"></div></div>
+    <div class="hstats">
+      <div class="hst"><span class="hstl">COINS</span><span class="hstv c" id="hc">0</span></div>
+      <div class="hst"><span class="hstl">LIVES</span><span class="hstv l" id="hliv">💗💗💗</span></div>
+    </div>
+  </div>
+  <div class="xpstrip"><div class="xpfill" id="xpf"></div></div>
+
+  <!-- Quest info bar -->
+  <div class="qbar">
+    <div class="qbar-icon" id="qbar-icon">🕯️</div>
+    <div class="qbar-info">
+      <div class="qbar-name" id="qbar-name">TRIAL I — THE WIND TRIAL</div>
+      <div class="qbar-ptrack"><div class="qbar-pfill q1c" id="qbar-pfill"></div></div>
+    </div>
+    <div class="qbar-right">
+      <div class="qbar-status qs-act" id="qbar-status">ACTIVE</div>
+      <div class="qbar-timer" id="qbar-timer">40s</div>
+    </div>
+  </div>
+
+  <!-- Main game area -->
+  <div class="main-area">
+
+    <!-- MINIGAME 1: CANDLE CHAOS -->
+    <div class="mg act" id="mg1">
+      <div class="hint">Tap to light 🔥 — wind blows them OUT! Keep ALL 12 lit at once to win!</div>
+      <div class="wind-row">
+        <span class="wind-lbl">🌬️ WIND</span>
+        <span class="wind-val" id="wind-val">CALM</span>
+        <span class="wind-lbl" id="lit-count">0/12 lit</span>
+      </div>
+      <div class="candle-grid" id="cng"></div>
+    </div>
+
+    <!-- MINIGAME 2: GEM CATCH -->
+    <div class="mg" id="mg2">
+      <div class="hint">Tap gems 💎 before they vanish! Miss 3 = FAIL. Need 16 catches!</div>
+      <div class="gem-hud">
+        <div class="gem-score">💎 <span id="gct">0</span>/16</div>
+        <div class="lives-row">
+          <span class="life" id="gl0">💗</span>
+          <span class="life" id="gl1">💗</span>
+          <span class="life" id="gl2">💗</span>
+        </div>
+      </div>
+      <div class="gem-grid" id="gg"></div>
+    </div>
+
+    <!-- MINIGAME 3: DARK QUEEN -->
+    <div class="mg" id="mg3">
+      <div class="boss-panel">
+        <div class="bsp" id="bsp">🧝‍♀️</div>
+        <div class="bhp-row">
+          <div class="bhp-labels">
+            <span class="bhp-lbl">DARK QUEEN HP</span>
+            <span class="bhp-num" id="bhpn">200/200</span>
+          </div>
+          <div class="bhp-wrap">
+            <div class="bhp-fill" id="bhpf" style="width:100%"></div>
+            <div class="bhp-txt" id="bhpt">FULL POWER</div>
+          </div>
+        </div>
+        <div class="shield-row" id="shrow">
+          <div class="sh-ico">🛡️</div>
+          <div class="sh-txt">Shield active! Break it first!</div>
+          <button class="sh-btn" id="shbtn" onclick="breakShield(event)">💥 BREAK</button>
+        </div>
+        <div class="boss-msg" id="bmsg">Shatter my shield… if you dare.</div>
+        <div class="atk-cd" id="acd"></div>
+        <button class="atk-btn" id="batk" onclick="attackBoss(event)" disabled>⚔️ ATTACK!</button>
+      </div>
+    </div>
+
+  </div><!-- main-area -->
+
+  <!-- Quest tab bar -->
+  <div class="tabs">
+    <div class="tab tab-act" id="tab1" onclick="switchQuest(1)">
+      <div class="tab-ico">🕯️</div>
+      <div class="tab-name">WIND<br/>TRIAL</div>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab tab-lock" id="tab2" onclick="switchQuest(2)">
+      <div class="tab-ico">💎</div>
+      <div class="tab-name">GEM<br/>CATCH</div>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab tab-lock" id="tab3" onclick="switchQuest(3)">
+      <div class="tab-ico">👑</div>
+      <div class="tab-name">DARK<br/>QUEEN</div>
+      <div class="tab-dot"></div>
+    </div>
+  </div>
+
+</div><!-- sg -->
+
+<!-- ══ FAIL ═══════════════════════════════════════ -->
+<div class="scr off" id="sf">
+  <div class="fic" id="fico">💔</div>
+  <div class="ftit" id="ftit">TRIAL FAILED</div>
+  <div class="fsub" id="fsub">The wind was too strong…<br/>A princess never gives up!</div>
+  <button class="bret" onclick="retryQ()">💪 TRY AGAIN</button>
+</div>
+
+<!-- ══ WIN ════════════════════════════════════════ -->
+<div class="scr off" id="sw">
+  <div class="bri"></div><div class="bri"></div><div class="bri"></div>
+  <div class="win-top">
+    <div class="win-tag">✨ ALL TRIALS COMPLETE ✨</div>
+    <div class="win-ico">🏆</div>
+  </div>
+  <div class="bmcard">
+    <div class="bdeco">🌸 💖 ✨ 💐 ✨ 💖 🌸</div>
+    <div class="bfor">A legendary message for</div>
+    <div class="bnam" id="wnam">Beautiful</div>
+    <div class="bdiv"><span>💕</span></div>
+    <div class="btxt">
+      You fought through every trial,<br/>
+      lit every candle in the storm,<br/>
+      caught every falling star,<br/>
+      and defeated the darkness —<br/>
+      just like you do <span class="e1">every single day.</span><br/>
+      May this year be as <span class="e3">rare, radiant,<br/>
+      and legendary</span> as you are. 🌸
+    </div>
+    <div class="bsign">— with so much love 💕</div>
+  </div>
+  <div class="hbday">🎂 HAPPY BIRTHDAY! 🎂</div>
+  <div class="win-footer">
+    <div class="sparkrow">🌸✨💖🎂💐✨🌸</div>
+    <button class="bagain" onclick="fullReset()">🔁 Again</button>
+  </div>
+</div>
+
+<!-- overlays -->
+<div class="toast" id="toast"></div>
+<div class="lvo" id="lvo"><div class="lvt" id="lvt">✨</div></div>
+
+<script>
+/* ── PARTICLES ──────────────────────────────────── */
+const CV=document.getElementById('fx'),CX=CV.getContext('2d');
+let PTS=[];
+function rsz(){CV.width=innerWidth;CV.height=innerHeight;}
+rsz();window.addEventListener('resize',rsz);
+function goToNextPage(fileName, delaySeconds) {
+    console.log("Next page in " + delaySeconds + " seconds...");
+    setTimeout(function() {
+        window.location.href = fileName;
+    }, delaySeconds * 1000);
+}
+class Pt{
+  constructor(rw){
+    this.x=rw?(Math.random()*CV.width):(Math.random()*CV.width);
+    this.y=rw?(Math.random()*CV.height*.5):(Math.random()*CV.height);
+    this.vx=(Math.random()-.5)*(rw?10:2);
+    this.vy=(Math.random()-.5)*(rw?10:1.5)-(rw?.5:.3);
+    this.a=Math.random()*.55+.1;
+    this.r=Math.random()*(rw?4:2)+.8;
+    this.col=['#ff2d78','#b87fff','#ffb830','#e879f9','#22d3ee'][0|Math.random()*5];
+    this.life=1;this.dec=rw?.009:.003;this.g=rw?.04:0;
+    this.em=rw&&Math.random()>.5?['💗','✨','🌸','💎','⭐'][0|Math.random()*5]:null;
+  }
+  u(){this.x+=this.vx;this.y+=this.vy;this.vy+=this.g;this.life-=this.dec;this.a=this.life*.6;}
+  d(){
+    CX.save();CX.globalAlpha=Math.max(0,this.a);
+    if(this.em){CX.font=`${this.r*6}px serif`;CX.fillText(this.em,this.x,this.y);}
+    else{CX.fillStyle=this.col;CX.shadowBlur=7;CX.shadowColor=this.col;CX.beginPath();CX.arc(this.x,this.y,this.r,0,Math.PI*2);CX.fill();}
+    CX.restore();
+  }
+}
+(function loop(){
+  CX.clearRect(0,0,CV.width,CV.height);
+  if(PTS.length<40)PTS.push(new Pt(false));
+  PTS=PTS.filter(p=>p.life>0);
+  PTS.forEach(p=>{p.u();p.d();});
+  requestAnimationFrame(loop);
+})();
+function burst(){for(let i=0;i<100;i++)setTimeout(()=>PTS.push(new Pt(true)),i*22);}
+
+/* ── UTILS ──────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const TIPS=['Sharpening birthday swords…','Brewing magical potions…','Summoning sparkle dust…','Polishing the crown…','Waking the Dark Queen…','Charging legendary rewards…'];
+const QINFO=[
+  null,
+  {icon:'🕯️',name:'TRIAL I — THE WIND TRIAL',pfillCls:'q1c'},
+  {icon:'💎',name:'TRIAL II — THE GEM CATCH',pfillCls:'q2c'},
+  {icon:'👑',name:'TRIAL III — THE DARK QUEEN',pfillCls:'q3c'},
+];
+
+function toastShow(msg,col='#34d399'){
+  const t=$('toast');t.textContent=msg;
+  t.style.borderColor=col;t.style.color=col;
+  t.style.boxShadow=`0 0 18px ${col}30`;
+  t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500);
+}
+function lvUp(txt){
+  const o=$('lvo'),t=$('lvt');t.textContent=txt;
+  o.classList.remove('on');void o.offsetWidth;o.classList.add('on');
+  setTimeout(()=>o.classList.remove('on'),1600);
+}
+function fEl(cl,tx,x,y){
+  const e=document.createElement('div');e.className=cl;e.textContent=tx;
+  e.style.cssText=`left:${x}px;top:${y}px`;
+  document.body.appendChild(e);setTimeout(()=>e.remove(),900);
+}
+function addC(n,e){S.coins+=n;$('hc').textContent=S.coins;if(e)fEl('cf',`+${n}💰`,e.clientX,e.clientY-10);}
+function addX(n){S.xp=Math.min(S.xp+n,200);$('xpf').style.width=(S.xp/200*100)+'%';}
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.add('off'));$(id).classList.remove('off');}
+function shake(){$('sg').classList.remove('shakeMe');void $('sg').offsetWidth;$('sg').classList.add('shakeMe');setTimeout(()=>$('sg').classList.remove('shakeMe'),400);}
+function litCount(){return document.querySelectorAll('.cb.lit').length;}
+
+function updateQBar(q,pct,statusTxt,statusCls,timerTxt,timerCls){
+  const qi=QINFO[q];
+  $('qbar-icon').textContent=qi.icon;
+  $('qbar-name').textContent=qi.name;
+  const pf=$('qbar-pfill');
+  pf.style.width=pct+'%';
+  pf.className='qbar-pfill '+qi.pfillCls;
+  const st=$('qbar-status');
+  st.textContent=statusTxt;st.className='qbar-status '+statusCls;
+  const tm=$('qbar-timer');
+  tm.textContent=timerTxt||'';tm.className='qbar-timer'+(timerCls?' '+timerCls:'');
+}
+
+/* ── STATE ──────────────────────────────────────── */
+const S={
+  name:'Beautiful',coins:0,xp:0,
+  done:0,cur:1,fq:0,
+  q1:{time:40,wlv:0,done:false,running:false,cT:null,wT:null},
+  q2:{caught:0,lives:3,done:false,active:false,spT:null},
+  q3:{hp:200,max:200,shielded:true,done:false,hT:null,aT:null,cdT:null},
+};
+
+/* ── JOIN ───────────────────────────────────────── */
+$('bjoin').addEventListener('click',()=>{
+  const v=$('nin').value.trim();S.name=v||'Beautiful';
+  startLoad();
+});
+$('nin').addEventListener('keydown',e=>{if(e.key==='Enter')$('bjoin').click();});
+
+function startLoad(){
+  show('sl');let p=0,ti=0;
+  const b=$('ldbf'),tp=$('ldtip');
+  const tiv=setInterval(()=>{tp.textContent=TIPS[ti++%TIPS.length];},600);
+  const biv=setInterval(()=>{
+    p+=Math.random()*8+4;
+    if(p>=100){p=100;b.style.width='100%';clearInterval(biv);clearInterval(tiv);setTimeout(startGame,350);}
+    else b.style.width=p+'%';
+  },110);
+}
+
+function startGame(){
+  $('hnam').textContent=S.name.toUpperCase();
+  $('hlvl').textContent='LVL 1 · BIRTHDAY INITIATE';
+  show('sg');
+  buildCandles();buildGems();
+  setTab(1);showMG(1);
+  updateQBar(1,0,'ACTIVE','qs-act',S.q1.time+'s',S.q1.time<=10?'danger':S.q1.time<=20?'warn':'');
+  startQ1();
+  toastShow('⚔️ TRIAL I — Keep ALL 12 candles lit!','#ff2d78');
+}
+
+/* ── TABS & SWITCHING ───────────────────────────── */
+function setTab(n){
+  [1,2,3].forEach(i=>{
+    const t=$('tab'+i);
+    t.classList.remove('tab-act','tab-done','tab-lock');
+    if(i===n) t.classList.add('tab-act');
+    else if(S.done>=i) t.classList.add('tab-done');
+    else if(S.done<i-1) t.classList.add('tab-lock');
+  });
+}
+function showMG(n){
+  [1,2,3].forEach(i=>$('mg'+i).classList.remove('act'));
+  $('mg'+n).classList.add('act');
+  S.cur=n;
+}
+function switchQuest(n){
+  if(n>1&&S.done<n-1)return;
+  if(n===S.cur)return;
+  showMG(n);setTab(n);
+  // Update qbar for this quest
+  if(n===1){
+    const pct=litCount()/12*100;
+    updateQBar(1,pct,'ACTIVE','qs-act',S.q1.time+'s',S.q1.time<=10?'danger':S.q1.time<=20?'warn':'');
+  } else if(n===2){
+    const pct=S.q2.caught/16*100;
+    const stl=S.q2.done?'qs-done':'qs-act';
+    updateQBar(2,pct,S.q2.done?'✅ DONE':'ACTIVE',stl,'','');
+  } else if(n===3){
+    const pct=((S.q3.max-S.q3.hp)/S.q3.max*100);
+    updateQBar(3,pct,S.q3.done?'✅ DONE':'ACTIVE',S.q3.done?'qs-done':'qs-act','','');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   TRIAL I — WIND CHAOS
+══════════════════════════════════════════════════ */
+function buildCandles(){
+  const g=$('cng');g.innerHTML='';
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');
+    b.className='cb';b.dataset.i=i;b.innerHTML='<span>🕯️</span>';
+    b.addEventListener('click',lightC);g.appendChild(b);
+  }
+}
+function lightC(e){
+  const b=e.currentTarget;if(b.classList.contains('lit'))return;
+  b.classList.add('lit');b.innerHTML='<span>🔥</span>';
+  const l=litCount();
+  $('lit-count').textContent=l+'/12 lit';
+  updateQBar(1,l/12*100,'ACTIVE','qs-act',S.q1.time+'s',S.q1.time<=10?'danger':S.q1.time<=20?'warn':'');
+  addC(10,e);
+  if(l>=12)checkQ1Win();
+}
+function blowOut(){
+  if(S.q1.done)return;
+  const lit=[...document.querySelectorAll('.cb.lit')];
+  if(!lit.length)return;
+  const cnt=Math.min(lit.length,S.q1.wlv+1);
+  const shuffled=lit.sort(()=>Math.random()-.5);
+  for(let i=0;i<cnt;i++){shuffled[i].classList.remove('lit');shuffled[i].innerHTML='<span>🕯️</span>';}
+  const l=litCount();
+  $('lit-count').textContent=l+'/12 lit';
+  updateQBar(1,l/12*100,'ACTIVE','qs-act',S.q1.time+'s',S.q1.time<=10?'danger':S.q1.time<=20?'warn':'');
+}
+function startQ1(){
+  if(S.q1.running||S.q1.done)return;
+  S.q1.running=true;S.q1.time=40;
+  S.q1.cT=setInterval(()=>{
+    S.q1.time--;
+    S.q1.wlv=S.q1.time<10?3:S.q1.time<20?2:S.q1.time<30?1:0;
+    const wn=['CALM','BREEZY','STRONG','🌪️ STORM'][S.q1.wlv];
+    $('wind-val').textContent=wn;
+    $('wind-val').style.color=S.q1.wlv===3?'#ff3355':S.q1.wlv===2?'#ffb830':S.q1.wlv===1?'#e879f9':'#7a6a9a';
+    const l=litCount();
+    updateQBar(1,l/12*100,'ACTIVE','qs-act',S.q1.time+'s',S.q1.time<=10?'danger':S.q1.time<=20?'warn':'');
+    if(S.q1.time<=0){clearQ1();failTrial(1,'The wind extinguished every flame!','💨');}
+  },1000);
+  schedWind();
+}
+function schedWind(){
+  if(S.q1.done)return;
+  const d=S.q1.time<10?800:S.q1.time<20?1300:S.q1.time<30?1900:2600;
+  S.q1.wT=setTimeout(()=>{blowOut();schedWind();},d);
+}
+function clearQ1(){clearInterval(S.q1.cT);clearTimeout(S.q1.wT);S.q1.running=false;}
+function checkQ1Win(){
+  if(litCount()<12)return;
+  S.q1.done=true;clearQ1();completeQ(1);
+}
+
+/* ══════════════════════════════════════════════════
+   TRIAL II — GEM CATCH
+══════════════════════════════════════════════════ */
+const GEMS=['💎','💍','🔮','💜','🌟','💫','✨','🪩'];
+function buildGems(){
+  const g=$('gg');g.innerHTML='';
+  for(let i=0;i<16;i++){
+    const c=document.createElement('div');c.className='gc empty';c.dataset.ci=i;g.appendChild(c);
+  }
+}
+function startQ2(){
+  if(S.q2.active||S.q2.done)return;
+  S.q2.active=true;schedGem();
+}
+function schedGem(){
+  if(S.q2.done)return;
+  const d=Math.random()*550+400;
+  S.q2.spT=setTimeout(spawnGem,d);
+}
+function spawnGem(){
+  if(S.q2.done||S.q2.lives<=0)return;
+  const cells=[...document.querySelectorAll('.gc.empty')];
+  if(!cells.length){schedGem();return;}
+  const cell=cells[0|Math.random()*cells.length];
+  cell.textContent=GEMS[0|Math.random()*GEMS.length];
+  cell.className='gc glit';
+  // pip
+  const pip=document.createElement('div');pip.className='gpip';
+  const pipf=document.createElement('div');pipf.className='gpipf';
+  pip.appendChild(pipf);cell.appendChild(pip);
+  const dur=S.q2.caught>12?650:S.q2.caught>7?900:S.q2.caught>3?1150:1400;
+  const t0=Date.now();
+  const pi=setInterval(()=>{
+    const p=Math.max(0,1-(Date.now()-t0)/dur);
+    pipf.style.width=(p*100)+'%';
+    pipf.style.background=p<.3?'#ff3355':p<.6?'#ffb830':'#b87fff';
+  },25);
+  const clk=e=>{
+    clearTimeout(ms);clearInterval(pi);
+    cell.removeEventListener('click',clk);
+    cell.className='gc gcaught';cell.textContent='✅';cell.querySelector('.gpip')?.remove();
+    S.q2.caught++;
+    $('gct').textContent=S.q2.caught;
+    updateQBar(2,S.q2.caught/16*100,'ACTIVE','qs-act','','');
+    addC(20,e);addX(5);
+    fEl('cf','💎 +20',e.clientX,e.clientY-15);
+    setTimeout(()=>{cell.textContent='';cell.className='gc empty';},450);
+    schedGem();
+    if(S.q2.caught>=16){clearTimeout(S.q2.spT);completeQ(2);}
+  };
+  cell.addEventListener('click',clk);
+  const ms=setTimeout(()=>{
+    clearInterval(pi);
+    cell.removeEventListener('click',clk);
+    cell.className='gc gmiss';cell.textContent='💨';cell.querySelector('.gpip')?.remove();
+    S.q2.lives--;updateGLives();
+    setTimeout(()=>{cell.textContent='';cell.className='gc empty';},400);
+    schedGem();
+    if(S.q2.lives<=0){clearTimeout(S.q2.spT);failTrial(2,'You missed too many gems!','💔');}
+  },dur);
+}
+function updateGLives(){
+  for(let i=0;i<3;i++)$('gl'+i).classList.toggle('dead',i>=S.q2.lives);
+  $('hliv').textContent='💗'.repeat(Math.max(0,S.q2.lives))||'💀';
+}
+
+/* ══════════════════════════════════════════════════
+   TRIAL III — DARK QUEEN
+══════════════════════════════════════════════════ */
+function startQ3(){
+  if(S.q3.done)return;
+  S.q3.shielded=true;shieldOn();startQueenCycles();
+}
+function shieldOn(){
+  S.q3.shielded=true;
+  $('shrow').style.display='flex';
+  $('shbtn').disabled=false;
+  $('batk').disabled=true;
+  $('bmsg').textContent='Shatter my shield… if you dare.';
+  $('acd').textContent='';
+}
+function breakShield(e){
+  if(!S.q3.shielded)return;
+  S.q3.shielded=false;
+  $('shrow').style.display='none';$('shbtn').disabled=true;
+  $('batk').disabled=false;
+  $('bmsg').textContent='⚠️ SHIELD BROKEN — ATTACK FAST! 3 sec!';
+  fEl('cf','💥 SHIELD!',e.clientX,e.clientY-10);
+  let cd=3;
+  if(S.q3.cdT)clearInterval(S.q3.cdT);
+  S.q3.cdT=setInterval(()=>{
+    cd--;$('acd').textContent=cd>0?`Shield returns in ${cd}s…`:'';
+    if(cd<=0){clearInterval(S.q3.cdT);if(!S.q3.done){shieldOn();$('bmsg').textContent='✨ My shield has returned!';}}
+  },1000);
+}
+function attackBoss(e){
+  if(S.q3.shielded||$('batk').disabled)return;
+  const dmg=(0|Math.random()*8)+4;
+  S.q3.hp=Math.max(0,S.q3.hp-dmg);
+  const pct=S.q3.hp/S.q3.max*100;
+  $('bhpf').style.width=pct+'%';$('bhpn').textContent=`${S.q3.hp}/200`;
+  if(pct<25){$('bhpf').style.background='linear-gradient(90deg,#ff3355,#ff6040)';$('bhpt').textContent='CRITICAL!';}
+  else if(pct<55){$('bhpf').style.background='linear-gradient(90deg,#ff6040,#ffb347)';$('bhpt').textContent='WEAKENED';}
+  updateQBar(3,(200-S.q3.hp)/200*100,'ACTIVE','qs-act','','');
+  const b=$('bsp');b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),250);
+  fEl('df',`-${dmg}`,e.clientX,e.clientY-10);addC(8,e);
+  if(S.q3.hp<=0){clearQ3();S.q3.done=true;$('batk').disabled=true;$('bsp').textContent='🌸';completeQ(3);}
+}
+function queenStrikes(){
+  if(S.q3.done)return;
+  shake();const drain=60;
+  S.coins=Math.max(0,S.coins-drain);$('hc').textContent=S.coins;
+  fEl('df',`-${drain}💰`,innerWidth/2-30,90);
+  $('bmsg').textContent='👑 QUEEN DRAINS YOUR COINS! -60💰';
+  toastShow('👑 Dark Queen drained 60 coins!','#ff3355');
+  setTimeout(()=>{if(!S.q3.done)$('bmsg').textContent='Your suffering pleases me…';},2200);
+}
+function queenHeals(){
+  if(S.q3.done||S.q3.hp<=0)return;
+  const hl=20;S.q3.hp=Math.min(S.q3.max,S.q3.hp+hl);
+  const pct=S.q3.hp/S.q3.max*100;
+  $('bhpf').style.width=pct+'%';$('bhpn').textContent=`${S.q3.hp}/200`;
+  if(pct>60){$('bhpf').style.background='linear-gradient(90deg,#ff0060,#e879f9)';$('bhpt').textContent='HEALING!';}
+  const b=$('bsp');b.classList.add('heal');setTimeout(()=>b.classList.remove('heal'),500);
+  fEl('hfl',`+${hl}HP ✨`,innerWidth/2-20,130);
+  $('bmsg').textContent='✨ I restore myself! HA!';
+  updateQBar(3,(200-S.q3.hp)/200*100,'ACTIVE','qs-act','','');
+}
+function startQueenCycles(){
+  clearQ3();
+  S.q3.hT=setInterval(queenHeals,6000);
+  S.q3.aT=setInterval(queenStrikes,4500);
+}
+function clearQ3(){
+  clearInterval(S.q3.hT);clearInterval(S.q3.aT);
+  if(S.q3.cdT)clearInterval(S.q3.cdT);
+}
+
+/* ── FAIL / RETRY ───────────────────────────────── */
+function failTrial(n,reason,icon){
+  S.fq=n;
+  $('ftit').textContent='TRIAL '+['I','II','III'][n-1]+' FAILED';
+  $('fsub').textContent=reason+'\nA princess never gives up!';
+  $('fico').textContent=icon;
+  show('sf');
+}
+function retryQ(){
+  const n=S.fq;show('sg');
+  if(n===1){
+    S.q1={time:40,wlv:0,done:false,running:false,cT:null,wT:null};
+    buildCandles();
+    $('lit-count').textContent='0/12 lit';
+    $('wind-val').textContent='CALM';
+    updateQBar(1,0,'ACTIVE','qs-act','40s','');
+    setTab(1);showMG(1);startQ1();
+    toastShow('🕯️ Trial I reset! Keep ALL 12 lit!','#ff2d78');
+  } else if(n===2){
+    S.q2={caught:0,lives:3,done:false,active:false,spT:null};
+    buildGems();$('gct').textContent='0';
+    for(let i=0;i<3;i++)$('gl'+i).classList.remove('dead');
+    $('hliv').textContent='💗💗💗';
+    updateQBar(2,0,'ACTIVE','qs-act','','');
+    setTab(2);showMG(2);startQ2();
+    toastShow('💎 Trial II reset! Tap FASTER!','#b87fff');
+  } else if(n===3){
+    S.q3={hp:200,max:200,shielded:true,done:false,hT:null,aT:null,cdT:null};
+    $('bhpf').style.width='100%';$('bhpf').style.background='';
+    $('bhpn').textContent='200/200';$('bhpt').textContent='FULL POWER';
+    $('bsp').textContent='🧝‍♀️';
+    $('batk').disabled=true;$('shrow').style.display='flex';$('bshbtn')&&($('bshbtn').disabled=false);
+    updateQBar(3,0,'ACTIVE','qs-act','','');
+    setTab(3);showMG(3);shieldOn();startQueenCycles();
+    toastShow('👑 The Queen reset! She is ANGRY!','#ffb830');
+  }
+}
+
+/* ── COMPLETE QUEST ─────────────────────────────── */
+function completeQ(n){
+  S.done++;
+  // update tab to done
+  $('tab'+n).classList.remove('tab-act');$('tab'+n).classList.add('tab-done');
+  const labels=['','✅ DONE','✅ DONE','✅ DONE'];
+  updateQBar(n,100,'✅ DONE','qs-done','','');
+
+  if(n===1){
+    addC(250);addX(60);lvUp('✨ TRIAL I CLEARED!');
+    toastShow('🕯️ ALL CANDLES LIT! +250 Coins!','#ffb830');
+    setTimeout(()=>{
+      $('tab2').classList.remove('tab-lock');$('tab2').classList.add('tab-act');
+      $('hlvl').textContent='LVL 2 · GEM HUNTER';
+      toastShow('💎 TRIAL II UNLOCKED!','#b87fff');
+      setTab(2);showMG(2);startQ2();
+      updateQBar(2,0,'ACTIVE','qs-act','','');
+    },2000);
+  } else if(n===2){
+    clearTimeout(S.q2.spT);
+    addC(350);addX(80);lvUp('💎 TRIAL II CLEARED!');
+    toastShow('💎 16 GEMS! +350 Coins!','#b87fff');
+    setTimeout(()=>{
+      $('tab3').classList.remove('tab-lock');$('tab3').classList.add('tab-act');
+      $('hlvl').textContent='LVL 3 · QUEEN SLAYER';
+      toastShow('👑 FINAL TRIAL UNLOCKED!','#ff2d78');
+      setTab(3);showMG(3);startQ3();
+      updateQBar(3,0,'ACTIVE','qs-act','','');
+    },2000);
+  } else if(n===3){
+    clearQ3();addC(600);addX(100);lvUp('🏆 LEGENDARY!');
+    $('hlvl').textContent='LVL MAX · BIRTHDAY LEGEND 👑';
+    toastShow('🏆 DARK QUEEN DEFEATED!','#ffb830');
+    setTimeout(showWin,2600);
+  }
+}
+
+/* ── WIN ────────────────────────────────────────── */
+function showWin(){$('wnam').textContent=S.name;show('sw');burst();goToNextPage('https://luciefer-devil.github.io/Happybirthday/HBD%20chutki', 10);}
+
+/* ── FULL RESET ─────────────────────────────────── */
+function fullReset(){
+  clearQ1();clearTimeout(S.q2.spT);clearQ3();
+  S.name='Beautiful';S.coins=0;S.xp=0;S.done=0;S.cur=1;S.fq=0;
+  S.q1={time:40,wlv:0,done:false,running:false,cT:null,wT:null};
+  S.q2={caught:0,lives:3,done:false,active:false,spT:null};
+  S.q3={hp:200,max:200,shielded:true,done:false,hT:null,aT:null,cdT:null};
+  $('hc').textContent='0';$('hliv').textContent='💗💗💗';$('xpf').style.width='0%';
+  $('ldbf').style.width='0%';$('nin').value='';
+  // reset tabs
+  $('tab1').className='tab tab-act';
+  $('tab2').className='tab tab-lock';
+  $('tab3').className='tab tab-lock';
+  // reset boss
+  $('bhpf').style.width='100%';$('bhpf').style.background='';
+  $('bhpn').textContent='200/200';$('bhpt').textContent='FULL POWER';
+  $('bsp').textContent='🧝‍♀️';$('batk').disabled=true;
+  $('shrow').style.display='flex';$('shbtn').disabled=false;
+  // reset gems
+  $('gct').textContent='0';for(let i=0;i<3;i++)$('gl'+i).classList.remove('dead');
+  // reset q1 ui
+  $('wind-val').textContent='CALM';$('lit-count').textContent='0/12 lit';
+  buildCandles();buildGems();
+  show('sj');
+}
+</script>
+</body>
+</html>
